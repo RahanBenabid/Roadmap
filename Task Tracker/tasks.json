@@ -1,22 +1,10 @@
 {
   "tasks": [
     {
-      "id": 510,
-      "title": "learn node ",
-      "createdAt": "2024-10-01T20:39:41.511Z",
-      "status": "pending"
-    },
-    {
-      "id": 1727815327610,
-      "title": "lolol",
-      "createdAt": "2024-10-01T20:42:07.610Z",
-      "status": "pending"
-    },
-    {
-      "id": 1727885884878,
-      "title": "kms",
-      "createdAt": "2024-10-02T16:18:04.878Z",
-      "status": "pending"
+      "id": 1727894432070,
+      "title": "node",
+      "createdAt": "2024-10-02T18:40:32.070Z",
+      "status": "todo"
     }
   ]
 }

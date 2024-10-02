@@ -1,125 +1,200 @@
 #!/usr/bin/env node
 const { program } = require('commander');
 const fs = require('fs').promises;
-const { exec } = require('child_process');
-const util = require('util');
-const execPromise = util.promisify(exec);
+const path = require('path');
 
-const path = './tasks.json';
+// Constants
+const TASKS_FILE = './tasks.json';
+const TASK_STATUSES = {
+  TODO: 'todo',
+  IN_PROGRESS: 'in-progress',
+  DONE: 'done'
+};
 
-program
-  .version('1.0.0')
-  .description('A CLI app test using Node.js')
-  .option('-a --add <task>', 'Provide a task')
-  .option('-s --status <mark>', 'Provide the stat')
-  .option('-g --get <id>', 'Get a task using the ID')
-  .option('-l --list', 'List all the Tasks')
-  .option('-d --delete <id>', 'Delete a task using its ID')
-  .option('-u --update <id> <task>', 'update a task using the ID')
-  .parse(process.argv);
+// Utility functions
+const handleError = (error, customMessage) => {
+  console.error(`${customMessage}: ${error.message}`);
+  process.exit(1);
+};
 
-const options = program.opts();
-
-async function writeFile(data) {
+const readTasks = async () => {
   try {
-    const taskJSON = JSON.stringify(data, null, 2);
-    await fs.writeFile(path, taskJSON);
-    console.log('Data written successfully to the disk');
-  } catch (error) {
-    console.log('An error has occurred while writing the file ', error);
-  }
-}
-
-async function readFile() {
-  try {
-    const data = await fs.readFile(path, 'utf8');
+    const data = await fs.readFile(TASKS_FILE, 'utf8');
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
       const initialData = { tasks: [] };
-      await writeFile(initialData);
+      await writeTasks(initialData);
       return initialData;
     }
-    console.error('Error reading file:', error);
-    return { tasks: [] };
+    throw error;
   }
-}
+};
 
-async function createFile() {
-  try {
-    const initialData = { tasks: [] };
-    await writeFile(initialData);
-    console.log('tasks.json created successfully with empty tasks array.');
-  } catch (error) {
-    console.error(`Error creating file: ${error.message}`);
-  }
-}
+const writeTasks = async (data) => {
+  const taskJSON = JSON.stringify(data, null, 2);
+  await fs.writeFile(TASKS_FILE, taskJSON);
+  return data;
+};
 
-async function getTask (id) {
-  const allTasks = await readFile();
-  const task = allTasks.tasks.find(task => task.id === parseInt(id));
+// Task management functions
+const findTask = (tasks, id) => {
+  const taskId = parseInt(id);
+  return {
+    task: tasks.find(task => task.id === taskId),
+    taskIndex: tasks.findIndex(task => task.id === taskId)
+  };
+};
+
+// Command handlers
+const addTask = async (title) => {
+  const allTasks = await readTasks();
+  const newTask = {
+    id: Date.now(),
+    title,
+    createdAt: new Date().toISOString(),
+    status: TASK_STATUSES.TODO,
+  };
+  allTasks.tasks.push(newTask);
+  return writeTasks(allTasks);
+};
+
+const updateTaskStatus = async (id, status) => {
+  const allTasks = await readTasks();
+  const { task } = findTask(allTasks.tasks, id);
   
-  if(task) {
-    return task;
-  } else {
-    return null;
+  if (!task) {
+    console.log(`No task found with ID ${id}`);
+    return allTasks;
   }
-}
+  
+  task.status = status;
+  return writeTasks(allTasks);
+};
 
-async function deleteTask (id) {
-  const allTasks = await readFile();
-  taskIndex = allTasks.tasks.find(task => task.id === id);
+const updateTaskTitle = async (id, newTitle) => {
+  const allTasks = await readTasks();
+  const { task } = findTask(allTasks.tasks, id);
+  
+  if (!task) {
+    console.log(`No task found with ID ${id}`);
+    return allTasks;
+  }
+  
+  task.title = newTitle;
+  return writeTasks(allTasks);
+};
+
+const deleteTask = async (id) => {
+  const allTasks = await readTasks();
+  const { taskIndex } = findTask(allTasks.tasks, id);
   
   if (taskIndex === -1) {
-    return null;
+    console.log(`No task found with ID ${id}`);
+    return allTasks;
   }
   
   allTasks.tasks.splice(taskIndex, 1);
-  await writeFile(allTasks);
-  return allTasks;
-}
+  return writeTasks(allTasks);
+};
 
-async function main() {
-  
-  // add a task
-  if (options.add) {
-    const allTasks = await readFile();
-    const newTask = {
-      id: Date.now(),
-      title: options.add,
-      createdAt: new Date().toISOString(),
-      status: "pending",
-    };
-    
-    allTasks.tasks.push(newTask);
-    await writeFile(allTasks); // Added await here
+const getTask = async (id) => {
+  const allTasks = await readTasks();
+  const { task } = findTask(allTasks.tasks, id);
+  return task || null;
+};
+
+// CLI commands setup
+program
+.version('1.0.0')
+.description('An elegant CLI task manager');
+
+program
+.command('add <title>')
+.description('Add a new task')
+.action(async (title) => {
+  try {
+    const result = await addTask(title);
+    console.log('Task added successfully:', result.tasks.slice(-1)[0]);
+  } catch (error) {
+    handleError(error, 'Failed to add task');
   }
+});
 
-  // get a task using the ID
-  if (options.get) {
-    const task = await getTask(options.get);
-    if(task) {
+program
+.command('update <id> <newTitle>')
+.description('Update a task title')
+.action(async (id, newTitle) => {
+  try {
+    const result = await updateTaskTitle(id, newTitle);
+    console.log('Task updated successfully:', result);
+  } catch (error) {
+    handleError(error, 'Failed to update task');
+  }
+});
+
+program
+.command('mark-in-progress <id>')
+.description('Mark task as in-progress')
+.action(async (id) => {
+  try {
+    await updateTaskStatus(id, TASK_STATUSES.IN_PROGRESS);
+    console.log(`Task ${id} marked as in-progress`);
+  } catch (error) {
+    handleError(error, 'Failed to update task status');
+  }
+});
+
+program
+.command('mark-done <id>')
+.description('Mark task as done')
+.action(async (id) => {
+  try {
+    await updateTaskStatus(id, TASK_STATUSES.DONE);
+    console.log(`Task ${id} marked as done`);
+  } catch (error) {
+    handleError(error, 'Failed to update task status');
+  }
+});
+
+program
+.command('list')
+.description('List all tasks')
+.action(async () => {
+  try {
+    const data = await readTasks();
+    console.table(data.tasks);
+  } catch (error) {
+    handleError(error, 'Failed to list tasks');
+  }
+});
+
+program
+.command('delete <id>')
+.description('Delete a task')
+.action(async (id) => {
+  try {
+    const result = await deleteTask(id);
+    console.log('Task deleted successfully. Updated tasks:', result);
+  } catch (error) {
+    handleError(error, 'Failed to delete task');
+  }
+});
+
+program
+.command('get <id>')
+.description('Get task by ID')
+.action(async (id) => {
+  try {
+    const task = await getTask(id);
+    if (task) {
       console.log('Found task:', task);
     } else {
-      console.log(`No task found with ID ${options.get}`);
+      console.log(`No task found with ID ${id}`);
     }
+  } catch (error) {
+    handleError(error, 'Failed to get task');
   }
-
-  // get all the tasks
-  if (options.list) {
-    const data = await readFile();
-    console.log(data);
-  }
-  
-  // delete a task using the ID (should be index for more ease of use)
-  if (options.delete) {
-    const id = parseInt(options.delete)
-    const newTasks = await deleteTask(id);
-    console.log('new updated Tasks:\n', newTasks);
-  }
-  
-}
-
-main().catch(error => {
-  console.error('An error occurred:', error);
 });
+
+program.parse(process.argv);
