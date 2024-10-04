@@ -46,3 +46,4 @@ coverage/
 # Test files
 *.test.js
 *.spec.js
+tasks.json

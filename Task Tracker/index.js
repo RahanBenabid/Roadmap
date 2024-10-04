@@ -158,12 +158,28 @@ program
 });
 
 program
-.command('list')
+.command('list []')
 .description('List all tasks')
-.action(async () => {
+.action(async (type) => {
   try {
     const data = await readTasks();
-    console.table(data.tasks);
+    switch (type) {
+      case 'done':
+        doneData = data.tasks.filter((task) => task.status === 'done');
+        console.table(doneData);
+        break;
+      case 'in-progress':
+        inProgressData = data.tasks.filter((task) => task.status === 'in-progress');
+        console.table(inProgressData);
+        break;
+      case 'todo':
+        todoData = data.tasks.filter((task) => task.status === 'todo');
+        console.table(todoData);
+        break;
+      default:
+        console.table(data.tasks);
+        break;
+    }
   } catch (error) {
     handleError(error, 'Failed to list tasks');
   }
