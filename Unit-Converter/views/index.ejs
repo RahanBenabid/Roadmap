@@ -3,52 +3,56 @@
     <head>
         <meta charset="UTF-8">
         <title><%= title %></title>
+        <!-- some style to make it readable -->
+        <style>
+            .error {
+                color: red;
+                margin-top: 10px;
+            }
+            .result {
+                margin-top: 20px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+        </style>
     </head>
 
     <body>
         <h1><%= heading %></h1>
 
-        <fieldset>
-            <legend>Select the unit type</legend>
-            <% types.forEach(function(type) { %>
-                <div>
-                    <input type="radio" id="<%= type %>" name="unit" value="<%= type %>"
-                        <%= type === types[0] ? 'checked' : '' %> />
-                    <label for="<%= type %>"><%= type %></label>
-                </div>
-            <% }); %>
-        </fieldset>
+        <form id="converter-form">
+            <fieldset>
+                <legend>Select the unit type</legend>
+                <% types.forEach(function(type) { %>
+                    <div>
+                        <!-- to make teh first one selected, or else it will pick a random one -->
+                        <input type="radio" id="<%= type %>" name="unit" value="<%= type %>"
+                            <%= type === types[0] ? 'checked' : '' %> />
+                        <label for="<%= type %>"><%= type %></label>
+                    </div>
+                <% }); %>
+            </fieldset>
 
-        <div>
-            <p>Select the units to convert</p>
-        </div>
-
-        <form>
             <div>
                 <label for="value">Enter the value you want to convert</label>
                 <br/>
-                <input type="number" id="value" name="value" required>
+                <input type="number" id="value" name="value" step="any" required>
             </div>
 
             <div>
                 <label for="convert_from">Unit to convert from:</label>
                 <br/>
-                <select name="convert_from" id="convert_from">
+                <select name="convert_from" id="convert_from" required>
                     <option value="">Please select an option</option>
-                    <% classes.forEach(function(unitClass) { %>
-                        <option value="<%= unitClass %>"><%= unitClass %></option>
-                    <% }); %>
                 </select>
             </div>
 
             <div>
                 <label for="convert_to">Unit to convert to:</label>
                 <br/>
-                <select name="convert_to" id="convert_to">
+                <select name="convert_to" id="convert_to" required>
                     <option value="">Please select an option</option>
-                    <% classes.forEach(function(unitClass) { %>
-                        <option value="<%= unitClass %>"><%= unitClass %></option>
-                    <% }); %>
                 </select>
             </div>
 
@@ -56,5 +60,78 @@
                 <input type="submit" value="Convert">
             </div>
         </form>
+
+        <div id="result" class="result" style="display: none;"></div>
+
+        <script>
+            // Store unit data from the server
+            const unitData = <%- JSON.stringify(unitData) %>;
+
+            function updateDropdowns(unitType) {
+                const fromSelect = document.getElementById('convert_from');
+                const toSelect = document.getElementById('convert_to');
+
+                // clear existing options
+                fromSelect.innerHTML = '<option value="">Please select an option</option>';
+                toSelect.innerHTML = '<option value="">Please select an option</option>';
+
+                // Add new options based on selected unit type
+                const units = unitData[unitType];
+                units.forEach(unit => {
+                    fromSelect.add(new Option(unit, unit));
+                    toSelect.add(new Option(unit, unit));
+                });
+            }
+
+            // the event listeners
+            document.querySelectorAll('input[name="unit"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    updateDropdowns(e.target.value);
+                });
+            });
+
+            const defaultUnitType = document.querySelector('input[name="unit"]:checked').value;
+            updateDropdowns(defaultUnitType);
+
+            // handle the form
+            document.getElementById('converter-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'none';
+
+                try {
+                    const formData = new FormData(this);
+                    const payload = {
+                        value: formData.get('value'),
+                        fromUnit: formData.get('convert_from'),
+                        toUnit: formData.get('convert_to'),
+                        unitType: formData.get('unit')
+                    };
+
+                    const response = await fetch('/convert', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        resultDiv.innerHTML = `
+                            <h3>Conversion Result:</h3>
+                            <p>${data.value} ${data.fromUnit} = ${data.result.toFixed(4)} ${data.toUnit}</p>
+                        `;
+                        resultDiv.style.display = 'block';
+                    } else {
+                        throw new Error(data.error);
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                    resultDiv.style.display = 'block';
+                }
+            });
+        </script>
     </body>
 </html>
