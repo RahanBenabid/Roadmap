@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title><%= title %></title>
+    </head>
+
+    <body>
+        <h1><%= heading %></h1>
+
+        <fieldset>
+            <legend>Select the unit type</legend>
+            <% types.forEach(function(type) { %>
+                <div>
+                    <input type="radio" id="<%= type %>" name="unit" value="<%= type %>"
+                        <%= type === types[0] ? 'checked' : '' %> />
+                    <label for="<%= type %>"><%= type %></label>
+                </div>
+            <% }); %>
+        </fieldset>
+
+        <div>
+            <p>Select the units to convert</p>
+        </div>
+
+        <form>
+            <div>
+                <label for="value">Enter the value you want to convert</label>
+                <br/>
+                <input type="number" id="value" name="value" required>
+            </div>
+
+            <div>
+                <label for="convert_from">Unit to convert from:</label>
+                <br/>
+                <select name="convert_from" id="convert_from">
+                    <option value="">Please select an option</option>
+                    <% classes.forEach(function(unitClass) { %>
+                        <option value="<%= unitClass %>"><%= unitClass %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <div>
+                <label for="convert_to">Unit to convert to:</label>
+                <br/>
+                <select name="convert_to" id="convert_to">
+                    <option value="">Please select an option</option>
+                    <% classes.forEach(function(unitClass) { %>
+                        <option value="<%= unitClass %>"><%= unitClass %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <div>
+                <input type="submit" value="Convert">
+            </div>
+        </form>
+    </body>
+</html>
