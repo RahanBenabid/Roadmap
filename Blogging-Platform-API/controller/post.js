@@ -68,10 +68,59 @@ exports.deletePost = async (req, res) => {
   }
 };
 
-// exports.updatePost = async (req, res) => {
-//   try {
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to delete the post" });
-//   }
-// };
+exports.updatePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { title, content, category, tag } = req.body;
+    const result = await Post.updateOne(
+      { _id: postId },
+      {
+        $set: {
+          title: title,
+          content: content,
+          category: category,
+          tag: tag,
+          updatedAt: Date.now(),
+        },
+      },
+    );
+
+    if (result.matchedCount !== 1) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    res.status(200).json({ message: "Post updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete the post" });
+  }
+};
+
+exports.searchPost = async (req, res) => {
+  try {
+    const { term } = req.query;
+    let query = {};
+
+    if (term) {
+      query = {
+        $or: [
+          { title: { $regex: term, $options: "i" } },
+          { content: { $regex: term, $options: "i" } },
+          { category: { $regex: term, $options: "i" } },
+          { tag: { $regex: term, $options: "i" } },
+        ],
+      };
+
+      const response = await Post.find(query);
+
+      if (!response) {
+        res.status(400).json({ message: "No post was found" });
+      }
+
+      res.status(200).json({ response });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to find your match" });
+  }
+};
