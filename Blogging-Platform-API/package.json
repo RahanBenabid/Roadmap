@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "express": "^4.21.0",
+    "express-rate-limit": "^7.4.1",
     "fs": "^0.0.1-security",
     "mongoose": "^8.7.0",
     "nodemon": "^3.1.7"

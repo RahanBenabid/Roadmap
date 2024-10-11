@@ -4,6 +4,7 @@ const redis = require("redis");
 
 const app = express();
 app.use(express.json());
+require("dotenv").config();
 
 async function performRequest(country) {
   try {
@@ -12,7 +13,7 @@ async function performRequest(country) {
       {
         params: {
           unitGroup: "metric",
-          key: "EHWTCRYZPUDMH7H4W8J9HFXVT",
+          key: process.env.KEY,
           contentType: "json",
         },
       },
