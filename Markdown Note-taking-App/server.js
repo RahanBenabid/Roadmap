@@ -15,14 +15,18 @@ const express = require("express");
 const mongoose = require("mongoose");
 const articleRouter = require("./routes/articles");
 const Article = require("./models/article");
+const methodOverride = require("method-override");
+
+mongoose.connect("mongodb://localhost/markdown_yt");
 
 // backend setup
 const PORT = 3000;
 const app = express();
 app.set("view engine", "ejs");
-mongoose.connect("mongodb://localhost/markdown_yt");
 
 app.use(express.urlencoded({ extended: false }));
+// whenever we use _method we will override the method
+app.use(methodOverride("_method"));
 
 app.get("/", async (req, res) => {
   const articles = await Article.find().sort({ createdAt: "desc" });
