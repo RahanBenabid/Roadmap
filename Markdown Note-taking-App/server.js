@@ -6,22 +6,26 @@ the app should have:
 
 The implementations should be:
  - an endpoint to check the syntax
- - an exndpoint to save the notes (they're passed as a markdown text)
+ - an endpoint to save the notes (they're passed as a markdown text)
  - an endpoint to list the saved notes
  - an endpoint to... render? the note, you give it the note and it gives back the HTML
 */
 
 const express = require("express");
 const mongoose = require("mongoose");
-const articleRouter = require("./routes/articles");
-const Article = require("./models/article");
 const methodOverride = require("method-override");
+
+const articleRouter = require("./routes/articles");
+const noteRouter = require("./routes/notes");
+
+const Article = require("./models/article");
 
 mongoose.connect("mongodb://localhost/markdown_yt");
 
 // backend setup
 const PORT = 3000;
 const app = express();
+app.use(express.json());
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: false }));
@@ -34,6 +38,7 @@ app.get("/", async (req, res) => {
   res.render("articles/index", { articles: articles });
 });
 
+app.use("/api", noteRouter);
 app.use("/articles", articleRouter);
 
 app.listen(PORT, () => {
