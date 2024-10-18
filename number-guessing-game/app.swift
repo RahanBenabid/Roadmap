@@ -1,7 +1,6 @@
 func game(maxTries: Int, mode: String) {
   let number: Int = Int.random(in: 1..<100)
-  var guess: Int = -1
-  var input: String? = nil
+  let guess: Int = -1
   var tries: Int = 0
 
   print(number)
@@ -24,9 +23,9 @@ func game(maxTries: Int, mode: String) {
           print("You guessed Right! You Win!")
           return
         } else if guess > number {
-          print("Bigger!")
-        } else {
           print("Smaller!")
+        } else {
+          print("Bigger!")
         }
         tries += 1
       }
@@ -46,8 +45,7 @@ func main() {
       Please select the difficulty level:
       1. Easy (10 chances)
       2. Medium (5 chances)
-      3. Hard (3 chances)
-      \n
+      3. Hard (3 chances)\n
       """
     )
     name = readLine()
