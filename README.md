@@ -1,7 +1,7 @@
 # Roadmap Projects
-This repo is my attempts at solving backend challenges from [roadmap][1] using Node.js and sometimes Swift.
-Right now, these are just my current solutions as I work through the available projects.
-I’ll add individual README files for each project later when I have more time to explain what they do
-More updates will come eventually! Even though no one cares!!!
+
+This repository contains my solutions to backend challenges from the [Roadmap][1], primarily using Node.js with occasional use of Swift. These are ongoing projects, and I am continuously working through the available challenges.
+
+Each project will eventually have its own README with detailed explanations. For now, this is a work in progress, and more updates will follow, even tho no ones really cares!
 
 [1]:	https://roadmap.sh/projects?g=backend
