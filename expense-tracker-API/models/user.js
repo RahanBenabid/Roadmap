@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
     unique: true,
     match: /.+\@.+\..+/,
   },
+  expenses: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Expense",
+    },
+  ],
 });
 
 userSchema.pre("save", async function (next) {
@@ -32,5 +38,5 @@ userSchema.methods.isValidPassword = async function (password) {
   return compare;
 };
 
-const User = mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;

@@ -1,9 +1,10 @@
 const Expense = require("./../models/expense");
+const User = require("./../models/user");
 const mongoose = require("mongoose");
 
 exports.getAllExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({});
+    const expenses = await Expense.find({}).populate("userId");
     console.log(expenses);
     res.status(200).json(expenses);
   } catch (err) {
@@ -28,15 +29,26 @@ exports.createExpense = async (req, res) => {
   try {
     const { userId, amount, description } = req.body;
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
     const newExpense = new Expense({
       userId: userId,
       amount: amount,
       description: description,
     });
     const savedExpense = await newExpense.save();
-    res
-      .status(201)
-      .json({ message: "Expense saved successfully", expense: savedExpense });
+
+    user.expenses.push(savedExpense._id);
+    await user.save();
+
+    res.status(201).json({
+      message: "Expense saved successfully",
+      expense: savedExpense,
+      user: user,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Unable to save expense" });
