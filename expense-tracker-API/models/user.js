@@ -10,10 +10,11 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false, // to not send it in requests
   },
   email: {
     type: String,
-    required: false,
+    required: true,
     unique: true,
     match: /.+\@.+\..+/,
   },
