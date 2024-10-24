@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     match: /.+\@.+\..+/,
   },
+  role: {
+    type: String,
+    required: true,
+    default: "0x01",
+  },
   expenses: [
     {
       type: mongoose.Schema.ObjectId,

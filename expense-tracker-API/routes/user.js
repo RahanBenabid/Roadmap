@@ -7,13 +7,17 @@ const {
   searchUser,
 } = require("./../controllers/user");
 const { login } = require("./../controllers/auth");
+const { verify } = require("./../middleware/verify");
 const router = express.Router();
 
-router.get("/search", searchUser);
+// Public routes
 router.post("/login", login);
-router.get("/", getAllUsers);
-router.get("/:id", getOneUser);
-router.post("/", createUser);
-router.delete("/:id", deleteUser);
+
+// Protected routes - add verify middleware
+router.get("/search", verify, searchUser);
+router.get("/", verify, getAllUsers);
+router.post("/", verify, createUser);
+router.get("/:id", verify, getOneUser);
+router.delete("/:id", verify, deleteUser);
 
 module.exports = router;

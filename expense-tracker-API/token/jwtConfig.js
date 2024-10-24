@@ -3,8 +3,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-function generateAccessToken(username) {
-  const payload = { username: username };
+function generateAccessToken(id) {
+  const payload = { id: id };
   return jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: "1h" });
 }
 
