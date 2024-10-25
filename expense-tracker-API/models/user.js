@@ -32,15 +32,20 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function (next) {
-  const user = this;
+  if (!this.isModified("password")) return next(); // Only hash if password is modified
   const hash = await bcrypt.hash(this.password, 10);
   this.password = hash;
   next();
 });
 
+// Method to compare passwords
 userSchema.methods.isValidPassword = async function (password) {
   const user = this;
-  const compare = await bcrypt.compare(password, user.password);
+  const dbUser = await mongoose
+    .model("User")
+    .findById(user._id)
+    .select("+password");
+  const compare = await bcrypt.compare(password, dbUser.password);
   return compare;
 };
 

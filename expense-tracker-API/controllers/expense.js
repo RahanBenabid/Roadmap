@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 
 exports.getAllExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({}).populate("userId");
+    const expenses = await Expense.find({ userId: req.user._id }).populate(
+      "userId",
+    );
     console.log(expenses);
     res.status(200).json(expenses);
   } catch (err) {
@@ -16,7 +18,11 @@ exports.getAllExpenses = async (req, res) => {
 exports.getOneExpense = async (req, res) => {
   try {
     const expenseId = req.params.id;
-    const expense = await Expense.findOne({ _id: expenseId });
+    const expense = await Expense.findOne({
+      _id: expenseId,
+      userId: req.user._id,
+    });
+
     console.log(expense);
     res.status(200).json({ expense: expense });
   } catch (err) {
@@ -27,7 +33,8 @@ exports.getOneExpense = async (req, res) => {
 
 exports.createExpense = async (req, res) => {
   try {
-    const { userId, amount, description } = req.body;
+    const { title, amount, description } = req.body;
+    const userId = req.user._id;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -36,13 +43,17 @@ exports.createExpense = async (req, res) => {
 
     const newExpense = new Expense({
       userId: userId,
+      title: title,
       amount: amount,
       description: description,
     });
     const savedExpense = await newExpense.save();
 
-    user.expenses.push(savedExpense._id);
-    await user.save();
+    await User.findByIdAndUpdate(
+      userId,
+      { $push: { expenses: savedExpense._id } },
+      { new: true },
+    );
 
     res.status(201).json({
       message: "Expense saved successfully",
@@ -55,6 +66,7 @@ exports.createExpense = async (req, res) => {
   }
 };
 
+// still not complete yet
 exports.deleteExpense = async (req, res) => {
   try {
     const expenseId = req.params.id;
@@ -80,7 +92,11 @@ exports.searchExpense = async (req, res) => {
 
     if (term) {
       query = {
-        $or: [{ description: { $regex: term, $options: "i" } }],
+        userId: req.user._id,
+        $or: [
+          { title: { $regex: term, $options: "i" } },
+          { description: { $regex: term, $options: "i" } },
+        ],
       };
 
       const response = await Expense.find(query);
@@ -93,5 +109,42 @@ exports.searchExpense = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Unable to search the expense" });
+  }
+};
+
+exports.updateExpense = async (req, res) => {
+  try {
+    const expenseId = req.params.id;
+    const { title, amount, description } = req.body;
+
+    // to update only the users own expenses
+    const expense = await Expense.findOne({
+      _id: expenseId,
+      userId: req.user._id, // Verify ownership
+    });
+
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    const result = await Expense.updateOne(
+      { _id: expenseId },
+      {
+        $set: {
+          title: title,
+          amount: amount,
+          description: description,
+        },
+      },
+    );
+
+    if (result.matchedCount !== 1) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    res.status(200).json({ error: "Post updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Unable to update the expense" });
   }
 };

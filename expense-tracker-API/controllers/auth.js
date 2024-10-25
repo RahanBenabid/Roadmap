@@ -32,7 +32,7 @@ exports.login = async (req, res) => {
     let options = {
       maxAge: 20 * 60 * 1000,
       httpOnly: true,
-      secure: true,
+      secure: false, // to be able to send over HTTP too, should be changed later
       sameSite: "None",
       path: "/",
     };
@@ -50,3 +50,5 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.logout = async (req, res) => {};

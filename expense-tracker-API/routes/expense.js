@@ -1,17 +1,14 @@
-const express = require("express");
-const {
-  getOneExpense,
-  getAllExpenses,
-  createExpense,
-  deleteExpense,
-  searchExpense,
-} = require("./../controllers/expense");
 const router = express.Router();
+const { verify } = require("../middleware/verify");
 
-router.get("/search", searchExpense);
+// protect all routes below
+router.use(verify);
+
 router.get("/", getAllExpenses);
+router.get("/search", searchExpense);
 router.get("/:id", getOneExpense);
 router.post("/", createExpense);
+router.put("/:id", updateExpense);
 router.delete("/:id", deleteExpense);
 
 module.exports = router;
