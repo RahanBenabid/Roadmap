@@ -17,7 +17,6 @@ yarn-error.log*
 dist/
 build/
 out/
-public/
 
 # Temporary files
 tmp/

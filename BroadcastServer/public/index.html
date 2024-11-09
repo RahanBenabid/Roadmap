@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elegant Chat Room</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .chat-container {
+        width: 100%;
+        max-width: 600px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #5a5a5a;
+      }
+      #messages {
+        list-style-type: none;
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #e6e6e6;
+        height: 300px;
+        overflow-y: scroll;
+        background-color: #fafafa;
+        border-radius: 8px;
+      }
+      #messages li {
+        padding: 8px;
+        margin-bottom: 10px;
+        background-color: #e1f5fe;
+        border-radius: 8px;
+        color: #00796b;
+      }
+      .input-container {
+        display: flex;
+        justify-content: space-between;
+      }
+      #message {
+        width: 80%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        outline: none;
+      }
+      #send-btn {
+        width: 18%;
+        padding: 10px;
+        background-color: #00796b;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      #send-btn:hover {
+        background-color: #004d40;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <h1>Chat Room</h1>
+      <ul id="messages"></ul>
+      <div class="input-container">
+        <input type="text" id="message" placeholder="Type your message..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+
+    <script>
+      const socket = io();
+      const messageInput = document.getElementById("message");
+      const sendButton = document.getElementById("send-btn");
+      const messagesList = document.getElementById("messages");
+
+      sendButton.addEventListener("click", () => {
+        const message = messageInput.value;
+        if (message.trim()) {
+          socket.emit("chat message", message);
+          messageInput.value = "";
+        }
+      });
+
+      socket.on("chat message", (msg) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = msg;
+        messagesList.appendChild(listItem);
+        messagesList.scrollTop = messagesList.scrollHeight;
+      });
+
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === 'Enter') {
+          sendButton.click();
+        }
+      });
+    </script>
+  </body>
+</html>
