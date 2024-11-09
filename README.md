@@ -13,3 +13,4 @@ Here's what I've built so far:
 * **Number Guessing Game:** A classic number guessing game you can play in your terminal. Choose your difficulty and dive in.
 * **Unit Converter:** Unlike the other projects, this one has a UI, Convert various units like length, weight, volume, and more.
 * **Blogging Platform API:** A basic API for managing blog posts. Create, read, update, and delete posts.
+* **BroadCast Server:** A real-time chat application built using Express and Socket.io. Users can send and receive messages instantly in a shared chat room. The app has some clean, modern interface too.
