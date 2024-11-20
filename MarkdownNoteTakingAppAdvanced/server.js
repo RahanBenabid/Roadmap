@@ -1,5 +1,5 @@
 var sharejs = require("share");
-var redis = require("redis");  // Import redis client explicitly
+var redis = require("redis");  // Import Redis client
 var express = require("express");
 
 var app = express();
@@ -15,43 +15,50 @@ app.get("/(:id)", function (req, res) {
     res.render("pad");
 });
 
-// Create Redis client explicitly
+// Create and connect Redis client
 var client = redis.createClient();
 
-// Add connection event handlers
-client.on('connect', function() {
-    console.log('Connected to Redis');
-});
-
-client.on('error', function(err) {
-    console.log('Redis error: ' + err);
-});
-
-// Ensure Redis client stays open using async connection handling
 async function startRedis() {
+    client.on('error', (err) => {
+        console.error('Redis error:', err);
+    });
+
     try {
-        await client.connect();  // Use async connect method
+        await client.connect(); // Connect Redis client
         console.log('Redis client connected successfully.');
     } catch (err) {
-        console.error('Redis connection failed:', err);
-        // Exit if Redis cannot connect to avoid running the app in a bad state
-        process.exit(1);  // Exit the app if Redis connection fails
+        console.error('Failed to connect to Redis:', err);
+        process.exit(1); // Exit if connection fails
     }
 }
 
-startRedis();  // Call the async function to connect to Redis
+startRedis(); // Initialize Redis connection
 
+// Options for ShareJS with Redis
 var options = {
-    db: { type: 'redis', redis: client }, // Pass the existing Redis client to ShareJS
+    db: {
+        type: 'redis',
+        client, // Use the active Redis client
+    },
 };
 
-// Attach Express to ShareJS
-sharejs.server.attach(app, options);
+// Attach ShareJS to Express
+try {
+    sharejs.server.attach(app, options);
+} catch (err) {
+    console.error('Error attaching ShareJS:', err);
+    process.exit(1);
+}
 
-// Gracefully handle app shutdown
+// Graceful shutdown handling
 process.on('SIGINT', async () => {
-    console.log("Shutting down gracefully...");
-    await client.quit();  // Ensure the Redis client is closed before exiting
+    console.log('Shutting down gracefully...');
+    try {
+        await client.quit(); // Close Redis client
+        console.log('Redis client disconnected.');
+    } catch (err) {
+        console.error('Error during Redis shutdown:', err);
+    }
     process.exit();
 });
 

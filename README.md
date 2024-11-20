@@ -14,3 +14,4 @@ Here's what I've built so far:
 * **Unit Converter:** Unlike the other projects, this one has a UI, Convert various units like length, weight, volume, and more.
 * **Blogging Platform API:** A basic API for managing blog posts. Create, read, update, and delete posts.
 * **BroadCast Server:** A real-time chat application built using Express and Socket.io. Users can send and receive messages instantly in a shared chat room. The app has some clean, modern interface too.
+* **Markdown Note Taking App:** Created two apps for this one, one where you can send your markdown text and it will return the rendered HTML, and a more advanced version of it where it's a fully functional real-time markdown editor.
